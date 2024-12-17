@@ -1,4 +1,4 @@
-{ nixpkgs ? import <nixpkgs> {}, stdenv, fetchFromGitHub, cmake }:
+{ nixpkgs ? import <nixpkgs> {}, stdenv, fetchFromGitHub, cmake, pkg-config }:
 
 with nixpkgs;
 
@@ -8,10 +8,16 @@ stdenv.mkDerivation rec {
   src = fetchFromGitHub {
     owner = "valhalla";
     repo = "valhalla";
-    rev = "3.3.0";
-    sha256 = "honnvgmT1u26vv2AdtLfHou7B640PXaV3s0XXNkd/QE=";
+    rev = "d377c8ace9ea88dfa989466258bf738b1080f22a";
+    sha256 = "sha256-C/2w3jmhMRLUW7vGo49NqoXSrmWIalH2yKVx7saxM68=";
     fetchSubmodules = true;
   };
+
+  nativeBuildInputs = [
+    cmake
+    pkg-config
+    git
+  ];
 
   cmakeFlags = [
     "-DENABLE_CCACHE=OFF"
@@ -25,10 +31,18 @@ stdenv.mkDerivation rec {
     "-DENABLE_CCACHE=OFF"
     "-DENABLE_DATA_TOOLS=OFF"
     "-DCMAKE_BUILD_TYPE=Release"
+    "-DCMAKE_POSITION_INDEPENDENT_CODE=ON"
+    "-DCMAKE_INCLUDE_PATH=${src}/third_party/robin-hood-hashing/src/include"
+  ];
+
+  # Instead of symlinks, we'll add to CXXFLAGS
+  NIX_CXXFLAGS_COMPILE = toString [
+    "-I${src}/third_party/robin-hood-hashing/src/include"
+    "-I${src}/third_party/rapidjson/include"
+    "-I${src}/third_party/date/include"
   ];
 
   buildInputs = [
-    cmake
     zlib
     boost179
     protobuf
@@ -36,12 +50,25 @@ stdenv.mkDerivation rec {
     libspatialite
     luajit
     geos
+    curl
+    openssl
+    libpqxx
+    libxml2
+    lz4
+    prime-server
+    jemalloc
   ];
 
-  # install necessary headers
-  postInstall = ''
-    cp -r $src/third_party/rapidjson/include/* $out/include
-    cp -r $src/third_party/date/include/* $out/include
+  # Set up environment variables
+  preConfigure = ''
+    export BOOST_ROOT=${boost179}
+    export SQLITE_ROOT=${sqlite.dev}
   '';
 
+  postInstall = ''
+    mkdir -p $out/include
+    cp -r $src/third_party/robin-hood-hashing/src/include/* $out/include/
+    cp -r $src/third_party/rapidjson/include/* $out/include/
+    cp -r $src/third_party/date/include/* $out/include/
+  '';
 }
