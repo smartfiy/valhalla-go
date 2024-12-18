@@ -1,56 +1,53 @@
-{ nixpkgs ? import <nixpkgs> {}
-, lib
-, stdenv
-, abseil-cpp
-, cmake
-, fetchFromGitHub
-, fetchpatch
-, gtest
-, zlib
-, pkg-config  # Added 
-, python3
-, ...
-}:
+{ pkgs ? import <nixpkgs> {} }:
 
-with nixpkgs;
+with pkgs;
 
 let
-  valhallaCustom = (import ./valhalla) { inherit stdenv fetchFromGitHub cmake pkg-config; };
-  protobufCustom = (import ./protobuf) { inherit lib abseil-cpp stdenv fetchFromGitHub cmake fetchpatch gtest zlib python3; };
-in stdenv.mkDerivation rec {
+  valhallaCustom = callPackage ./valhalla {
+    inherit stdenv fetchFromGitHub cmake pkg-config;
+  };
+in
+stdenv.mkDerivation {
   name = "valhalla-go";
-  version = "./.";
+  version = "0.1.0";
+  src = ./..;
 
-  nativeBuildInputs = [ cmake pkg-config ];
+  nativeBuildInputs = [ pkg-config ];
   
   buildInputs = [
     boost179
     valhallaCustom
+    protobuf
     zlib
-    protobufCustom
   ];
 
-  # Add flags to handle the deprecated builtins warning
-  NIX_CFLAGS_COMPILE = "-Wno-deprecated-builtins";
+  dontConfigure = true;
 
-buildPhase = ''
-  c++ \
-    valhalla_go.cpp \
-    -fPIC \
-    -shared \
-    -o libvalhalla_go.so \
-    -I${protobufCustom}/include \
-    -L${protobufCustom}/lib \
-    -L${valhallaCustom}/lib \
-    -lvalhalla \
-    -lprotobuf-lite \
-    -lz \
-    -lpthread
-'';
+  buildPhase = ''
+    mkdir -p build
+    cd build
+    
+    c++ ../bindings/valhalla_go.cpp \
+      -fPIC \
+      -shared \
+      -o libvalhalla_go.so \
+      -I${valhallaCustom}/include \
+      -I${protobuf}/include \
+      -I${valhallaCustom}/include/rapidjson \
+      -L${valhallaCustom}/lib \
+      -L${protobuf}/lib \
+      -Wl,-rpath,${valhallaCustom}/lib \
+      -Wl,-rpath,${protobuf}/lib \
+      -lvalhalla \
+      -lprotobuf \
+      -lz \
+      -lpthread \
+      -std=c++17
+  '';
 
   installPhase = ''
     mkdir -p $out/lib
-    cp libvalhalla_go.so $out/lib
+    cp libvalhalla_go.so $out/lib/
   '';
 
   meta = with lib; {
