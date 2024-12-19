@@ -64,6 +64,11 @@ stdenv.mkDerivation rec {
     "-DENABLE_TESTS=OFF"
     "-DCMAKE_POSITION_INDEPENDENT_CODE=ON"
     "-DBUILD_SHARED_LIBS=ON"
+    "-DCMAKE_AR=${gcc12}/bin/gcc-ar"
+    "-DCMAKE_RANLIB=${gcc12}/bin/gcc-ranlib"
+    "-DCMAKE_STRIP=${gcc12}/bin/strip"
+    "-DCMAKE_C_COMPILER=${gcc12}/bin/gcc"
+    "-DCMAKE_CXX_COMPILER=${gcc12}/bin/g++"
     "-DProtobuf_INCLUDE_DIR=${protobuf}/include"
     "-DProtobuf_LIBRARIES=${protobuf}/lib/libprotobuf${stdenv.hostPlatform.extensions.sharedLibrary}"
   ];
