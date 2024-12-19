@@ -23,6 +23,8 @@ stdenv.mkDerivation {
 
   dontConfigure = true;
 
+  NIX_CFLAGS_COMPILE = "-D_GNU_SOURCE -D_DEFAULT_SOURCE -DGLIBC_COMPAT"; # avoid compiling with GLIBC_2.38
+
   buildPhase = ''
     mkdir -p build
     cd build
@@ -38,11 +40,17 @@ stdenv.mkDerivation {
       -L${protobuf}/lib \
       -Wl,-rpath,${valhallaCustom}/lib \
       -Wl,-rpath,${protobuf}/lib \
+      -Wl,--hash-style=gnu \
       -lvalhalla \
       -lprotobuf \
       -lz \
       -lpthread \
       -std=c++17
+  '';
+
+  # Ensure proper library paths and older GLIBC symbols
+  postFixup = ''
+    patchelf --set-rpath "${stdenv.cc.cc.lib}/lib:${valhallaCustom}/lib:${protobuf}/lib" $out/lib/libvalhalla_go.so
   '';
 
   installPhase = ''

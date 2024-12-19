@@ -20,7 +20,7 @@
 
 stdenv.mkDerivation rec {
   name = "valhalla";
-  version = "3.3.0";
+  version = "3.5.1";
 
   src = fetchFromGitHub {
     owner = "valhalla";
@@ -51,6 +51,15 @@ stdenv.mkDerivation rec {
     lz4
     prime-server
     jemalloc
+  ];
+
+  # Use older GLIBC features
+  NIX_CFLAGS_COMPILE = toString [
+    "-D_GNU_SOURCE"
+    "-D_DEFAULT_SOURCE"
+    "-DGLIBC_COMPAT"
+    "-I${protobuf}/include"
+    "-I${src}/third_party/rapidjson/include"
   ];
 
   cmakeFlags = [
