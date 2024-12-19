@@ -1,22 +1,6 @@
-{ stdenv
-, fetchFromGitHub
-, cmake 
-, pkg-config
-, boost179
-, protobuf
-, zlib
-, sqlite
-, libspatialite
-, lua5_3
-, geos
-, curl
-, openssl
-, libpqxx
-, libxml2
-, lz4
-, prime-server
-, jemalloc
-}:
+{ nixpkgs ? import <nixpkgs> {}, stdenv, fetchFromGitHub, cmake, pkg-config }:
+
+with nixpkgs;
 
 stdenv.mkDerivation rec {
   name = "valhalla";
@@ -58,9 +42,13 @@ stdenv.mkDerivation rec {
     "-D_GNU_SOURCE"
     "-D_DEFAULT_SOURCE"
     "-DGLIBC_COMPAT"
+    "-fPIC"
     "-I${protobuf}/include"
     "-I${src}/third_party/rapidjson/include"
   ];
+
+  CFLAGS = "-O2 -D_FORTIFY_SOURCE=2";
+  LDFLAGS = "-Wl,--as-needed -Wl,-z,relro";
 
   cmakeFlags = [
     "-DCMAKE_BUILD_TYPE=Release"
@@ -83,6 +71,7 @@ stdenv.mkDerivation rec {
   CXXFLAGS = [
     "-I${protobuf}/include"
     "-I${src}/third_party/rapidjson/include"
+    
   ];
 
   postInstall = ''
