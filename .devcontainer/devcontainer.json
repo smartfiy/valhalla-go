@@ -3,13 +3,11 @@
 {
 	"name": "Go",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/go:1-1.23-bookworm",
-	"features": {
-		"ghcr.io/devcontainers/features/nix:1": {
-			"multiUser": true,
-			"useAttributePath": true,
-			"version": "2.18"
-		}
+	"build": {
+		"dockerfile": "Dockerfile",
+		// Update 'VARIANT' to pick an Ubuntu version: jammy / ubuntu-22.04, focal / ubuntu-20.04, bionic /ubuntu-18.04
+		// Use ubuntu-22.04 or ubuntu-18.04 on local arm64/Apple Silicon.
+		"args": { "VARIANT": "focal" }
 	},
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
