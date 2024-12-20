@@ -23,5 +23,14 @@
 	// "customizations": {},
 
 	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-	 "remoteUser": "root"
+	"remoteUser": "root",
+	"features": {
+		"ghcr.io/devcontainers/features/go:1": {
+			"version": "1.23"
+		},
+		"ghcr.io/devcontainers/features/nix:1": {
+			"multiUser": true,
+			"version": "2.11"
+		}
+	}
 }
